@@ -55,6 +55,11 @@ function create () {
 
 
     cursors = this.input.keyboard.createCursorKeys();
+    this.input.on('pointerdown', function (pointer) {
+        if (player.body.touching.down) {
+            player.body.setVelocityY(-500);
+        }
+    }, this);
 }
 function update () {
 
