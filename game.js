@@ -105,6 +105,7 @@ function update () {
          highScoreText.setText('High Score: ' + highScore);
 
         obstacles.getChildren().forEach(function(obstacle) {
+            obstacle.body.setVelocityX(-200);
             if (obstacle.x < -obstacle.width) {
                 obstacle.destroy();
             }
