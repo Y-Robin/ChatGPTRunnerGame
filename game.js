@@ -42,11 +42,13 @@ function create () {
 
     // Ground
     var groundGraphics = this.add.rectangle(400, 570, 800, 60, 0x228B22);
-    ground = this.physics.add.existing(groundGraphics, true);
+    this.physics.add.existing(groundGraphics, true);
+    ground = groundGraphics;
 
     // Player
     var playerGraphics = this.add.rectangle(100, 500, 50, 50, 0xFF4500);
-    player = this.physics.add.existing(playerGraphics);
+    this.physics.add.existing(playerGraphics);
+    player = playerGraphics;
     player.body.setCollideWorldBounds(true);
     player.body.setGravityY(300);
 
