@@ -31,6 +31,7 @@ var scoreText;
 var highScoreText;
 var infoText;
 var gameOverText;
+var jumpCount = 0;
 
 
 function preload () {
@@ -55,14 +56,20 @@ function create () {
     this.physics.add.collider(player, obstacles, hitObstacle, null, this);
     scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '20px', fill: '#fff', fontFamily: 'Arial' });
     highScoreText = this.add.text(600, 16, 'High Score: 0', { fontSize: '20px', fill: '#fff', fontFamily: 'Arial' });
-    infoText = this.add.text(400, 560, 'Tap or press SPACE to jump', { fontSize: '18px', fill: '#fff', fontFamily: 'Arial' }).setOrigin(0.5);
+    infoText = this.add.text(400, 560, 'SPACE: Jump/Dbl. Jump | UP: Long Jump', { fontSize: '18px', fill: '#fff', fontFamily: 'Arial' }).setOrigin(0.5);
     gameOverText = this.add.text(400, 250, '', { fontSize: '32px', fill: '#fff', fontFamily: 'Arial' }).setOrigin(0.5);
 
 
     cursors = this.input.keyboard.createCursorKeys();
+    this.input.mouse.disableContextMenu();
     this.input.on('pointerdown', function (pointer) {
-        if (player.body.touching.down) {
-            player.body.setVelocityY(-500);
+        if (jumpCount < 2) {
+            if (pointer.rightButtonDown()) {
+                player.body.setVelocityY(-700);
+            } else {
+                player.body.setVelocityY(-500);
+            }
+            jumpCount++;
         }
     }, this);
 }
@@ -70,13 +77,17 @@ function update () {
 
     if (!gameOver) {
         if (Phaser.Math.Between(0, 100) < 1 && obstaclesTime < 0) {
-            var obstacle = obstacles.create(800, 535, 50, 50, 0x8B4513);
-            obstacle.body.setAllowGravity(false);
-            obstacle.setVelocityX(-200);
+            var heights = [535, 485, 435];
+            var h = Phaser.Utils.Array.GetRandom(heights);
+            var obstacleRect = this.add.rectangle(800, h, 50, 50, 0x8B4513);
+            this.physics.add.existing(obstacleRect);
+            obstacleRect.body.setAllowGravity(false);
+            obstacleRect.body.setVelocityX(-200);
+            obstacles.add(obstacleRect);
             obstaclesTime = 50;
-        }else{
-	    obstaclesTime = obstaclesTime -1;
-	}
+        } else {
+            obstaclesTime = obstaclesTime -1;
+        }
 
          score += 1;
          if (score > highScore) {
@@ -91,8 +102,18 @@ function update () {
             }
         });
 
-        if (cursors.space.isDown && player.body.touching.down) {
+        if (player.body.blocked.down || player.body.touching.down) {
+            jumpCount = 0;
+        }
+
+        if (Phaser.Input.Keyboard.JustDown(cursors.space) && jumpCount < 2) {
             player.body.setVelocityY(-500);
+            jumpCount++;
+        }
+
+        if (Phaser.Input.Keyboard.JustDown(cursors.up) && jumpCount < 2) {
+            player.body.setVelocityY(-700);
+            jumpCount++;
         }
     }
 }
@@ -113,3 +134,4 @@ function hitObstacle (player, obstacle) {
         this.scene.restart();
     });
 }
+
