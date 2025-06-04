@@ -49,6 +49,9 @@ function create () {
     // Player
     player = this.physics.add.sprite(100, 500, 'player1');
     player.setDisplaySize(50, 50);
+    // Ensure the physics body matches the scaled sprite
+    player.body.setSize(50, 50);
+    player.body.setOffset(0, 0);
     player.body.setCollideWorldBounds(true);
     player.body.setGravityY(300);
 
