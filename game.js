@@ -60,23 +60,17 @@ function create () {
     this.physics.add.collider(player, ground);
     this.physics.add.collider(player, obstacles, hitObstacle, null, this);
     scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '20px', fill: '#fff', fontFamily: 'Arial' });
-    highScoreText = this.add.text(600, 16, 'High Score: 0', { fontSize: '20px', fill: '#fff', fontFamily: 'Arial' });
-    infoText = this.add.text(400, 560, 'SPACE: Jump/Dbl. Jump | UP: Long Jump', { fontSize: '18px', fill: '#fff', fontFamily: 'Arial' }).setOrigin(0.5);
+    highScore = parseInt(localStorage.getItem('highScore')) || 0;
+    highScoreText = this.add.text(600, 16, 'High Score: ' + highScore, { fontSize: '20px', fill: '#fff', fontFamily: 'Arial' });
+    infoText = this.add.text(400, 560, 'Hold SPACE or Click to jump', { fontSize: '18px', fill: '#fff', fontFamily: 'Arial' }).setOrigin(0.5);
     gameOverText = this.add.text(400, 250, '', { fontSize: '32px', fill: '#fff', fontFamily: 'Arial' }).setOrigin(0.5);
-
 
     cursors = this.input.keyboard.createCursorKeys();
     this.input.mouse.disableContextMenu();
-    this.input.on('pointerdown', function (pointer) {
-        if (jumpCount < 2) {
-            if (pointer.rightButtonDown()) {
-                player.body.setVelocityY(-700);
-            } else {
-                player.body.setVelocityY(-500);
-            }
-            jumpCount++;
-        }
-    }, this);
+    this.input.on('pointerdown', startJump, this);
+    this.input.on('pointerup', endJump, this);
+    this.input.keyboard.on('keydown-SPACE', startJump, this);
+    this.input.keyboard.on('keyup-SPACE', endJump, this);
 }
 function update () {
 
@@ -100,6 +94,7 @@ function update () {
          score += 1;
          if (score > highScore) {
              highScore = score;
+             localStorage.setItem('highScore', highScore);
          }
          scoreText.setText('Score: ' + score);
          highScoreText.setText('High Score: ' + highScore);
@@ -115,15 +110,19 @@ function update () {
             jumpCount = 0;
         }
 
-        if (Phaser.Input.Keyboard.JustDown(cursors.space) && jumpCount < 2) {
-            player.body.setVelocityY(-500);
-            jumpCount++;
-        }
+    }
+}
 
-        if (Phaser.Input.Keyboard.JustDown(cursors.up) && jumpCount < 2) {
-            player.body.setVelocityY(-700);
-            jumpCount++;
-        }
+function startJump () {
+    if (jumpCount < 2) {
+        player.body.setVelocityY(-700);
+        jumpCount++;
+    }
+}
+
+function endJump () {
+    if (player.body.velocity.y < -200) {
+        player.body.setVelocityY(-200);
     }
 }
 
