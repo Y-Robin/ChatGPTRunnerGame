@@ -82,6 +82,9 @@ function update () {
             var obstacleRect = this.add.rectangle(800, h, 50, 50, 0x8B4513);
             this.physics.add.existing(obstacleRect);
             obstacleRect.body.setAllowGravity(false);
+
+            obstacleRect.body.setImmovable(true);
+
             obstacleRect.body.setVelocityX(-200);
             obstacles.add(obstacleRect);
             obstaclesTime = 50;
