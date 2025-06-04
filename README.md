@@ -12,9 +12,9 @@ Type  http://localhost:8000/ in your browser and enjoy the game
 
 ## Controls
 
-- **Space**: Jump / Double Jump
-- **Up Arrow**: Long Jump
+- **Space or Mouse Click**: Jump / Double Jump
+  - Hold the button longer to perform a higher jump
 
-Right clicking also performs a long jump while left click performs a normal jump.
+Your best score is stored locally and shown when starting the game.
 
 Obstacles appear at varying heights, so time your jumps carefully!
