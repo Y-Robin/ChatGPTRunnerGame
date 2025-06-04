@@ -35,7 +35,8 @@ var jumpCount = 0;
 
 
 function preload () {
-    // No need to load any images.
+    this.load.image('player1', 'image1.png');
+    this.load.image('player2', 'image2.png');
 }
 
 function create () {
@@ -46,11 +47,21 @@ function create () {
     ground = groundGraphics;
 
     // Player
-    var playerGraphics = this.add.rectangle(100, 500, 50, 50, 0xFF4500);
-    this.physics.add.existing(playerGraphics);
-    player = playerGraphics;
+    player = this.physics.add.sprite(100, 500, 'player1');
+    player.setDisplaySize(50, 50);
     player.body.setCollideWorldBounds(true);
     player.body.setGravityY(300);
+
+    this.anims.create({
+        key: 'run',
+        frames: [
+            { key: 'player1' },
+            { key: 'player2' }
+        ],
+        frameRate: 8,
+        repeat: -1
+    });
+    player.anims.play('run');
 
     obstacles = this.physics.add.group({
         allowGravity: false,
@@ -128,7 +139,7 @@ function endJump () {
 
 function hitObstacle (player, obstacle) {
     this.physics.pause();
-    player.fillColor = 0x0000ff;
+    player.setTint(0x0000ff);
     gameOver = true;
 
     score = 0;
