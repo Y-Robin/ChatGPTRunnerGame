@@ -50,7 +50,10 @@ function create () {
     player.body.setCollideWorldBounds(true);
     player.body.setGravityY(300);
 
-    obstacles = this.physics.add.group();
+    obstacles = this.physics.add.group({
+        allowGravity: false,
+        immovable: true
+    });
 
     this.physics.add.collider(player, ground);
     this.physics.add.collider(player, obstacles, hitObstacle, null, this);
@@ -101,7 +104,7 @@ function update () {
 
         obstacles.getChildren().forEach(function(obstacle) {
             if (obstacle.x < -obstacle.width) {
-                obstacles.remove(obstacle, true, true);
+                obstacle.destroy();
             }
         });
 
