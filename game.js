@@ -49,12 +49,12 @@ function create () {
     ground = groundGraphics;
 
     // Player
-    player = this.physics.add.sprite(100, 538, 'player1');
+    player = this.physics.add.sprite(100, 540, 'player1');
     player.setOrigin(0.5, 1);
     player.setDisplaySize(50, 50);
-    // Ensure the physics body matches the scaled sprite and stays centered
-    player.body.setSize(50, 55, true);
-    player.body.setOffset(0, -5);
+    // Match the physics body to the sprite so it rests correctly on the ground
+    player.body.setSize(50, 50, true);
+    player.body.setOffset(0, 0);
     player.body.updateFromGameObject();
     player.body.setCollideWorldBounds(true);
     player.body.setGravityY(300);
@@ -123,6 +123,8 @@ function update () {
             this.physics.add.existing(coinCircle);
             coinCircle.body.setAllowGravity(false);
             coinCircle.body.setImmovable(true);
+            // Use a circular body so collisions feel natural
+            coinCircle.body.setCircle(15);
             coinCircle.body.setVelocityX(-200);
             coins.add(coinCircle);
             coinTime = 70;
