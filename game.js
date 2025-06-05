@@ -21,6 +21,8 @@ var game = new Phaser.Game(config);
 var player;
 var ground;
 var obstacles;
+var coins;
+var coinTime = 0;
 var cursors;
 var gameOver = false;
 var restartButton;
@@ -47,11 +49,12 @@ function create () {
     ground = groundGraphics;
 
     // Player
-    player = this.physics.add.sprite(100, 540, 'player1');
+    player = this.physics.add.sprite(100, 538, 'player1');
     player.setOrigin(0.5, 1);
     player.setDisplaySize(50, 50);
     // Ensure the physics body matches the scaled sprite and stays centered
-    player.body.setSize(50, 50, true);
+    player.body.setSize(50, 55, true);
+    player.body.setOffset(0, -5);
     player.body.updateFromGameObject();
     player.body.setCollideWorldBounds(true);
     player.body.setGravityY(300);
@@ -71,6 +74,13 @@ function create () {
         allowGravity: false,
         immovable: true
     });
+
+    coins = this.physics.add.group({
+        allowGravity: false,
+        immovable: true
+    });
+
+    this.physics.add.overlap(player, coins, collectCoin, null, this);
 
     this.physics.add.collider(player, ground);
     this.physics.add.collider(player, obstacles, hitObstacle, null, this);
@@ -106,6 +116,20 @@ function update () {
             obstaclesTime = obstaclesTime -1;
         }
 
+        if (Phaser.Math.Between(0, 100) < 1 && coinTime < 0) {
+            var cHeights = [520, 470, 420];
+            var ch = Phaser.Utils.Array.GetRandom(cHeights);
+            var coinCircle = this.add.circle(800, ch, 15, 0xFFFF00);
+            this.physics.add.existing(coinCircle);
+            coinCircle.body.setAllowGravity(false);
+            coinCircle.body.setImmovable(true);
+            coinCircle.body.setVelocityX(-200);
+            coins.add(coinCircle);
+            coinTime = 70;
+        } else {
+            coinTime = coinTime -1;
+        }
+
          score += 1;
          if (score > highScore) {
              highScore = score;
@@ -118,6 +142,13 @@ function update () {
             obstacle.body.setVelocityX(-200);
             if (obstacle.x < -obstacle.width) {
                 obstacle.destroy();
+            }
+        });
+
+        coins.getChildren().forEach(function(coin) {
+            coin.body.setVelocityX(-200);
+            if (coin.x < -30) {
+                coin.destroy();
             }
         });
 
@@ -156,5 +187,10 @@ function hitObstacle (player, obstacle) {
         gameOverText.setText('');
         this.scene.restart();
     });
+}
+
+function collectCoin (player, coin) {
+    coin.destroy();
+    score += 1000;
 }
 
