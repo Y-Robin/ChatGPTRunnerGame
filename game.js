@@ -49,12 +49,12 @@ function create () {
     ground = groundGraphics;
 
     // Player
-    player = this.physics.add.sprite(100, 540, 'player1');
-    player.setOrigin(0.5, 1);
-    player.setDisplaySize(50, 50);
-    // Match the physics body to the sprite so it rests correctly on the ground
-    player.body.setSize(50, 50, true);
-    player.body.setOffset(0, 0);
+	player = this.physics.add.sprite(100, 520, 'player1');
+	player.setOrigin(1, 1);
+	player.setDisplaySize(80, 80);
+	player.body.setSize(800, 900);
+	player.body.setOffset(100, 0); 
+
     player.body.updateFromGameObject();
     player.body.setCollideWorldBounds(true);
     player.body.setGravityY(300);
