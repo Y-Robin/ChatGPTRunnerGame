@@ -37,8 +37,10 @@ var jumpCount = 0;
 
 
 function preload () {
-    this.load.image('player1', 'image1.png');
-    this.load.image('player2', 'image2.png');
+this.load.image('player1', 'image1.png?v=1.0');
+this.load.image('player2', 'image2.png?v=1.0');
+this.load.image('player3', 'image3.png?v=1.0');
+this.load.image('ground', 'ground.png');
 }
 
 function create () {
@@ -63,9 +65,10 @@ function create () {
         key: 'run',
         frames: [
             { key: 'player1' },
-            { key: 'player2' }
+            { key: 'player2' },
+			{ key: 'player3' } 
         ],
-        frameRate: 8,
+        frameRate: 10,
         repeat: -1
     });
     player.anims.play('run');
