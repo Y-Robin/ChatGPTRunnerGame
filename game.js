@@ -7,7 +7,7 @@ var config = {
         default: 'arcade',
         arcade: {
             gravity: { y: 300 },
-            debug: false
+            debug: true    // <--- DEBUG ON
         }
     },
     scene: {
@@ -18,6 +18,7 @@ var config = {
 };
 
 var game = new Phaser.Game(config);
+
 var player;
 var ground;
 var obstacles;
@@ -35,6 +36,8 @@ var infoText;
 var gameOverText;
 var jumpCount = 0;
 
+var grass; // NEU: für das mitlaufende Gras
+
 function preload () {
     this.load.image('player1', 'image1.png?v=1.0');
     this.load.image('player2', 'image2.png?v=1.0');
@@ -43,17 +46,16 @@ function preload () {
 }
 
 function create () {
-    // Add ground image and scale it
-    const groundImage = this.add.image(400, 600, 'ground');
-    groundImage.setOrigin(0.5, 1);
+    // --- MITLAUFENDES GRAS als TileSprite ---
+    // 800 breit (Spielfeld), 100 hoch (je nach Grasbereich anpassen)
+    grass = this.add.tileSprite(400, 1000, 800, 1800, 'ground').setOrigin(0.5, 1);
+	grass.setScale(1, 0.27); 
+    // Zeige nur den mittigen Grasbereich aus deiner Textur:
+    // 1024/2 = 512, Gras beginnt bei y=512-50, 100px hoch
+    //grass.setCrop(0, 300, 1500, 500);
+    // Werte ggf. anpassen, falls das Gras bei dir anders sitzt!
 
-    groundImage.setScale(1,0.25);
-
-    // Adjust to match visible grass with physics y = 570
-    const grassOffsetFromBottom = 1222 - 1150;
-    groundImage.y = 685;
-
-    // Invisible collider
+    // Unsichtbarer Boden zum Kollidieren
     const groundCollider = this.add.rectangle(400, 570, 800, 60, 0x000000, 0);
     this.physics.add.existing(groundCollider, true);
     ground = groundCollider;
@@ -102,6 +104,10 @@ function create () {
 
 function update () {
     if (!gameOver) {
+        // --- GRAS LAUFEN LASSEN ---
+        grass.tilePositionX += 2.65; // Geschwindigkeit je nach Bedarf anpassen
+
+        // Hindernisse spawnen und bewegen
         if (Phaser.Math.Between(0, 100) < 1 && obstaclesTime < 0) {
             var heights = [535, 485, 435];
             var h = Phaser.Utils.Array.GetRandom(heights);
@@ -116,6 +122,7 @@ function update () {
             obstaclesTime--;
         }
 
+        // Coins spawnen und bewegen
         if (Phaser.Math.Between(0, 100) < 1 && coinTime < 0) {
             var cHeights = [520, 470, 420];
             var ch = Phaser.Utils.Array.GetRandom(cHeights);
