@@ -7,7 +7,7 @@ var config = {
         default: 'arcade',
         arcade: {
             gravity: { y: 300 },
-            debug: true    // <--- DEBUG ON
+            debug: false    // <--- DEBUG ON
         }
     },
     scene: {
@@ -105,59 +105,58 @@ function create () {
 function update () {
     if (!gameOver) {
         // --- GRAS LAUFEN LASSEN ---
-        grass.tilePositionX += 2.65; // Geschwindigkeit je nach Bedarf anpassen
+        let speed = 2.65;
+        grass.tilePositionX += speed;
 
-        // Hindernisse spawnen und bewegen
+        // Hindernisse spawnen und als "manuell bewegt" markieren
         if (Phaser.Math.Between(0, 100) < 1 && obstaclesTime < 0) {
             var heights = [535, 485, 435];
             var h = Phaser.Utils.Array.GetRandom(heights);
             var obstacleRect = this.add.rectangle(800, h, 50, 50, 0x8B4513);
-            this.physics.add.existing(obstacleRect);
-            obstacleRect.body.setAllowGravity(false);
-            obstacleRect.body.setImmovable(true);
-            obstacleRect.body.setVelocityX(-200);
+            obstacleRect.isManualMove = true;
             obstacles.add(obstacleRect);
             obstaclesTime = 50;
         } else {
             obstaclesTime--;
         }
 
-        // Coins spawnen und bewegen
+        // Coins spawnen und als "manuell bewegt" markieren
         if (Phaser.Math.Between(0, 100) < 1 && coinTime < 0) {
             var cHeights = [520, 470, 420];
             var ch = Phaser.Utils.Array.GetRandom(cHeights);
             var coinCircle = this.add.circle(800, ch, 15, 0xFFFF00);
-            this.physics.add.existing(coinCircle);
-            coinCircle.body.setAllowGravity(false);
-            coinCircle.body.setImmovable(true);
-            coinCircle.body.setCircle(15);
-            coinCircle.body.setVelocityX(-200);
+            coinCircle.isManualMove = true;
             coins.add(coinCircle);
             coinTime = 70;
         } else {
             coinTime--;
         }
 
+        // Score
         score += 1;
         if (score > highScore) {
             highScore = score;
             localStorage.setItem('highScore', highScore);
         }
-
         scoreText.setText('Score: ' + score);
         highScoreText.setText('High Score: ' + highScore);
 
+        // Hindernisse und Coins manuell verschieben (nicht mit Velocity!)
         obstacles.getChildren().forEach(function(obstacle) {
-            obstacle.body.setVelocityX(-200);
-            if (obstacle.x < -obstacle.width) {
-                obstacle.destroy();
+            if (obstacle.isManualMove) {
+                obstacle.x -= speed;
+                if (obstacle.x < -obstacle.width) {
+                    obstacle.destroy();
+                }
             }
         });
 
         coins.getChildren().forEach(function(coin) {
-            coin.body.setVelocityX(-200);
-            if (coin.x < -30) {
-                coin.destroy();
+            if (coin.isManualMove) {
+                coin.x -= speed;
+                if (coin.x < -30) {
+                    coin.destroy();
+                }
             }
         });
 
@@ -166,6 +165,7 @@ function update () {
         }
     }
 }
+
 
 function startJump () {
     if (jumpCount < 2) {
