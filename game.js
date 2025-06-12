@@ -43,6 +43,8 @@ function preload () {
     this.load.image('player2', 'image2.png?v=1.0');
     this.load.image('player3', 'image3.png?v=1.0');
     this.load.image('ground', 'ground.png');
+    this.load.image('wall', 'wall.png');   // <-- Hindernis
+    this.load.image('coin', 'coin.png');   // <-- Coin
 }
 
 function create () {
@@ -109,29 +111,39 @@ function update () {
         grass.tilePositionX += speed;
 
         // Hindernisse spawnen und als "manuell bewegt" markieren
-        if (Phaser.Math.Between(0, 100) < 1 && obstaclesTime < 0) {
-            var heights = [535, 485, 435];
-            var h = Phaser.Utils.Array.GetRandom(heights);
-            var obstacleRect = this.add.rectangle(800, h, 50, 50, 0x8B4513);
-            obstacleRect.isManualMove = true;
-            obstacles.add(obstacleRect);
-            obstaclesTime = 50;
-        } else {
-            obstaclesTime--;
-        }
+		if (Phaser.Math.Between(0, 100) < 1 && obstaclesTime < 0) {
+			var heights = [535, 485, 435];
+			var h = Phaser.Utils.Array.GetRandom(heights);
+			// NEU: Bild verwenden!
+			var obstacleImg = this.add.image(800, h, 'wall');
+			obstacleImg.setOrigin(0.5, 0.5);
+			obstacleImg.setDisplaySize(50, 50); // Anpassen wie vorher das Rectangle!
+			this.physics.add.existing(obstacleImg); // Falls noch für Collider benötigt
+			obstacleImg.body.setAllowGravity(false);
+			obstacleImg.body.setImmovable(true);
+			obstacleImg.isManualMove = true;
+			obstacles.add(obstacleImg);
+			obstaclesTime = 50;
+		} else {
+			obstaclesTime--;
+		}
 
-        // Coins spawnen und als "manuell bewegt" markieren
-        if (Phaser.Math.Between(0, 100) < 1 && coinTime < 0) {
-            var cHeights = [520, 470, 420];
-            var ch = Phaser.Utils.Array.GetRandom(cHeights);
-            var coinCircle = this.add.circle(800, ch, 15, 0xFFFF00);
-            coinCircle.isManualMove = true;
-            coins.add(coinCircle);
-            coinTime = 70;
-        } else {
-            coinTime--;
-        }
-
+		if (Phaser.Math.Between(0, 100) < 1 && coinTime < 0) {
+			var cHeights = [520, 470, 420];
+			var ch = Phaser.Utils.Array.GetRandom(cHeights);
+			// NEU: Bild verwenden!
+			var coinImg = this.add.image(800, ch, 'coin');
+			coinImg.setOrigin(0.5, 0.5);
+			coinImg.setDisplaySize(30, 30); // Anpassen wie vorher der Kreis!
+			this.physics.add.existing(coinImg);
+			coinImg.body.setAllowGravity(false);
+			coinImg.body.setImmovable(true);
+			coinImg.isManualMove = true;
+			coins.add(coinImg);
+			coinTime = 70;
+		} else {
+			coinTime--;
+		}
         // Score
         score += 1;
         if (score > highScore) {
