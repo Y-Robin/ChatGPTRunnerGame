@@ -7,7 +7,7 @@ var config = {
         default: 'arcade',
         arcade: {
             gravity: { y: 300 },
-            debug: false    // <--- DEBUG ON
+            debug: false
         }
     },
     scene: {
@@ -35,29 +35,29 @@ var highScoreText;
 var infoText;
 var gameOverText;
 var jumpCount = 0;
+var grass;
 
-var grass; // NEU: für das mitlaufende Gras
+// Slide-Variablen
+var isSliding = false;
+var slideTime = 0;
+var SLIDE_DURATION = 800; // ms
+var slideYOffset = 0; // <-- Für Sprite-Position beim Slide
 
 function preload () {
     this.load.image('player1', 'image1.png?v=1.0');
     this.load.image('player2', 'image2.png?v=1.0');
     this.load.image('player3', 'image3.png?v=1.0');
     this.load.image('ground', 'ground.png');
-    this.load.image('wall', 'wall.png');   // <-- Hindernis
-    this.load.image('coin', 'coin.png');   // <-- Coin
+    this.load.image('wall', 'wall.png');
+    this.load.image('coin', 'coin.png');
+    this.load.image('slide', 'slide.png'); // Slide-Sprite
 }
 
 function create () {
-    // --- MITLAUFENDES GRAS als TileSprite ---
-    // 800 breit (Spielfeld), 100 hoch (je nach Grasbereich anpassen)
     grass = this.add.tileSprite(400, 1000, 800, 1800, 'ground').setOrigin(0.5, 1);
-	grass.setScale(1, 0.27); 
-    // Zeige nur den mittigen Grasbereich aus deiner Textur:
-    // 1024/2 = 512, Gras beginnt bei y=512-50, 100px hoch
-    //grass.setCrop(0, 300, 1500, 500);
-    // Werte ggf. anpassen, falls das Gras bei dir anders sitzt!
+    grass.setScale(1, 0.27);
 
-    // Unsichtbarer Boden zum Kollidieren
+    // Unsichtbarer Boden
     const groundCollider = this.add.rectangle(400, 570, 800, 60, 0x000000, 0);
     this.physics.add.existing(groundCollider, true);
     ground = groundCollider;
@@ -66,8 +66,8 @@ function create () {
     player = this.physics.add.sprite(100, 520, 'player1');
     player.setOrigin(1, 1);
     player.setDisplaySize(80, 80);
-    player.body.setSize(800, 900);
-    player.body.setOffset(100, 0);
+    player.body.setSize(800, 900); // Breite, Höhe
+    player.body.setOffset(100, 0); // Offset X, Y
     player.body.setCollideWorldBounds(true);
     player.body.setGravityY(300);
 
@@ -76,7 +76,8 @@ function create () {
         frames: [
             { key: 'player1' },
             { key: 'player2' },
-            { key: 'player3' }
+            { key: 'player3' },
+            { key: 'player2' }
         ],
         frameRate: 10,
         repeat: -1
@@ -102,49 +103,63 @@ function create () {
     this.input.on('pointerup', endJump, this);
     this.input.keyboard.on('keydown-SPACE', startJump, this);
     this.input.keyboard.on('keyup-SPACE', endJump, this);
+    this.input.keyboard.on('keydown-DOWN', startSlide, this);
 }
 
 function update () {
+    // Slide-Ende checken
+    if (isSliding) {
+        slideTime -= this.game.loop.delta;
+        if (slideTime <= 0) {
+            isSliding = false;
+
+            // Sprite Y wieder runter
+            player.y += 0;
+
+            player.setTexture('player1');
+            player.setDisplaySize(80, 80);
+            player.body.setSize(800, 900);
+            player.body.setOffset(100, 0);
+            player.anims.play('run');
+        }
+    }
+
     if (!gameOver) {
-        // --- GRAS LAUFEN LASSEN ---
         let speed = 2.65;
         grass.tilePositionX += speed;
 
-        // Hindernisse spawnen und als "manuell bewegt" markieren
-		if (Phaser.Math.Between(0, 100) < 1 && obstaclesTime < 0) {
-			var heights = [535, 485, 435];
-			var h = Phaser.Utils.Array.GetRandom(heights);
-			// NEU: Bild verwenden!
-			var obstacleImg = this.add.image(800, h, 'wall');
-			obstacleImg.setOrigin(0.5, 0.5);
-			obstacleImg.setDisplaySize(50, 50); // Anpassen wie vorher das Rectangle!
-			this.physics.add.existing(obstacleImg); // Falls noch für Collider benötigt
-			obstacleImg.body.setAllowGravity(false);
-			obstacleImg.body.setImmovable(true);
-			obstacleImg.isManualMove = true;
-			obstacles.add(obstacleImg);
-			obstaclesTime = 50;
-		} else {
-			obstaclesTime--;
-		}
+        if (Phaser.Math.Between(0, 100) < 1 && obstaclesTime < 0) {
+            var heights = [520, 460, 435];
+            var h = Phaser.Utils.Array.GetRandom(heights);
+            var obstacleImg = this.add.image(800, h, 'wall');
+            obstacleImg.setOrigin(0.5, 0.5);
+            obstacleImg.setDisplaySize(50, 50);
+            this.physics.add.existing(obstacleImg);
+            obstacleImg.body.setAllowGravity(false);
+            obstacleImg.body.setImmovable(true);
+            obstacleImg.isManualMove = true;
+            obstacles.add(obstacleImg);
+            obstaclesTime = 50;
+        } else {
+            obstaclesTime--;
+        }
 
-		if (Phaser.Math.Between(0, 100) < 1 && coinTime < 0) {
-			var cHeights = [520, 470, 420];
-			var ch = Phaser.Utils.Array.GetRandom(cHeights);
-			// NEU: Bild verwenden!
-			var coinImg = this.add.image(800, ch, 'coin');
-			coinImg.setOrigin(0.5, 0.5);
-			coinImg.setDisplaySize(30, 30); // Anpassen wie vorher der Kreis!
-			this.physics.add.existing(coinImg);
-			coinImg.body.setAllowGravity(false);
-			coinImg.body.setImmovable(true);
-			coinImg.isManualMove = true;
-			coins.add(coinImg);
-			coinTime = 70;
-		} else {
-			coinTime--;
-		}
-        // Score
+        if (Phaser.Math.Between(0, 100) < 1 && coinTime < 0) {
+            var cHeights = [520, 470, 420];
+            var ch = Phaser.Utils.Array.GetRandom(cHeights);
+            var coinImg = this.add.image(800, ch, 'coin');
+            coinImg.setOrigin(0.5, 0.5);
+            coinImg.setDisplaySize(30, 30);
+            this.physics.add.existing(coinImg);
+            coinImg.body.setAllowGravity(false);
+            coinImg.body.setImmovable(true);
+            coinImg.isManualMove = true;
+            coins.add(coinImg);
+            coinTime = 70;
+        } else {
+            coinTime--;
+        }
+
         score += 1;
         if (score > highScore) {
             highScore = score;
@@ -153,7 +168,6 @@ function update () {
         scoreText.setText('Score: ' + score);
         highScoreText.setText('High Score: ' + highScore);
 
-        // Hindernisse und Coins manuell verschieben (nicht mit Velocity!)
         obstacles.getChildren().forEach(function(obstacle) {
             if (obstacle.isManualMove) {
                 obstacle.x -= speed;
@@ -178,11 +192,43 @@ function update () {
     }
 }
 
+// Slide-Start
+function startSlide () {
+    if (!isSliding && (player.body.blocked.down || player.body.touching.down)) {
+        isSliding = true;
+        slideTime = SLIDE_DURATION;
+
+        // *** Unterschied der Display-Größen ***
+        slideYOffset = 80 - 70; // alteHöhe - neueHöhe
+
+        // *** Sprite Y nach oben setzen, damit untere Kante gleich bleibt ***
+        player.y -= slideYOffset;
+
+        player.setTexture('slide');
+        player.setDisplaySize(80, 50);
+
+        // *** Hitbox fürs Sliden ***
+        player.body.setSize(800, 450);        // Breite, Höhe
+        player.body.setOffset(100, 450);      // X, Y
+        player.anims.stop();
+    }
+}
 
 function startJump () {
     if (jumpCount < 2) {
         player.body.setVelocityY(-700);
         jumpCount++;
+        // Beim Springen Slide ggf. abbrechen
+        if (isSliding) {
+            isSliding = false;
+            // *** Sprite Y wieder runtersetzen ***
+            player.y += slideYOffset;
+            player.setTexture('player1');
+            player.setDisplaySize(80, 80);
+            player.body.setSize(800, 900);
+            player.body.setOffset(100, 0);
+            player.anims.play('run');
+        }
     }
 }
 
